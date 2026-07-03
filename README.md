@@ -72,6 +72,11 @@ npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 curl -fsSL https://pi.dev/install.sh | sh
 ```
 
+### 🪟 Windows (WinGet)
+```powershell
+winget install EarendilWorks.pi
+```
+
 ---
 
 ## Quick Start
