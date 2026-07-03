@@ -1,3 +1,5 @@
+🌍 [English](README.md) | [Türkçe](README.tr.md) | [Español](README.es.md)
+
 # 🥧 Pi Coding Agent — General User Guide
 
 > **The minimal, terminal-based coding assistant that fits into your everyday workflow.**
