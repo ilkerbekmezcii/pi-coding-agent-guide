@@ -18,15 +18,12 @@
 
 ---
 
-## ₿ Crypto Donations
+## 💰 Crypto Donations
 
 ```
-Bitcoin (BTC):       bc1qck3e9dwqkj9qnmwzut43sv48wwat7mhywd0rwr
-BNB / USDT (BEP20):  0x799a799dE5C140DA95B11E2deFF2a9CA5f1F915a
-Dogecoin (DOGE):     DJh5poVevoccpqPWng28hLkP775araunMf
+BNB (BEP20):      0x799a799dE5C140DA95B11E2deFF2a9CA5f1F915a
+Dogecoin (DOGE):  DJh5poVevoccpqPWng28hLkP775araunMf
 ```
-
-> 💡 **Recommended:** USDT (BEP20) — fee ~$0.03, instant.
 
 ---
 
