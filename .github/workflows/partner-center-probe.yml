@@ -22,33 +22,36 @@ jobs:
         run: |
           npm install --no-save playwright@latest
           npx playwright install --with-deps chromium
-      - name: Probe Partner Center
+      - name: Probe Partner Center routes
         run: |
           cat > probe.mjs <<'EOF'
           import { chromium } from 'playwright';
           import fs from 'fs';
           const browser = await chromium.launch({headless:true});
-          const ctx = await browser.newContext({locale:'en-US', timezoneId:'Europe/Istanbul', viewport:{width:1440,height:1000}});
-          const page = await ctx.newPage();
-          let responseStatus=null, error=null;
-          try {
-            const r=await page.goto('https://partner.microsoft.com/dashboard',{waitUntil:'domcontentloaded',timeout:90000});
-            responseStatus=r?.status() ?? null;
-            await page.waitForTimeout(7000);
-          } catch(e) { error=String(e); }
-          const result={responseStatus,url:page.url(),title:await page.title().catch(()=>''),error,text:(await page.locator('body').innerText().catch(()=>'' )).slice(0,2500)};
-          console.log('PARTNER_PROBE_RESULT='+JSON.stringify(result));
-          fs.writeFileSync('partner-center-probe.json',JSON.stringify(result,null,2));
-          await page.screenshot({path:'partner-center-probe.png',fullPage:true}).catch(()=>{});
+          const ctx = await browser.newContext({locale:'en-US', timezoneId:'Europe/Istanbul', viewport:{width:1440,height:1000}, userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36'});
+          const routes=[
+            'https://partner.microsoft.com/en-us/dashboard/apps-and-games',
+            'https://partner.microsoft.com/en-us/dashboard',
+            'https://partner.microsoft.com/dashboard/apps-and-games',
+            'https://partner.microsoft.com/dashboard'
+          ];
+          const results=[];
+          for(const target of routes){
+            const page=await ctx.newPage();
+            let responseStatus=null,error=null;
+            try{const r=await page.goto(target,{waitUntil:'domcontentloaded',timeout:90000});responseStatus=r?.status()??null;await page.waitForTimeout(3000);}catch(e){error=String(e);}
+            const result={target,responseStatus,url:page.url(),title:await page.title().catch(()=>''),error,text:(await page.locator('body').innerText().catch(()=>'' )).slice(0,1200)};
+            console.log('PARTNER_ROUTE_RESULT='+JSON.stringify(result));
+            results.push(result);
+            await page.close();
+          }
+          fs.writeFileSync('partner-center-probe.json',JSON.stringify(results,null,2));
           await browser.close();
-          if(error) process.exitCode=2;
           EOF
           node probe.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: partner-center-probe
-          path: |
-            partner-center-probe.json
-            partner-center-probe.png
+          path: partner-center-probe.json
           retention-days: 1
