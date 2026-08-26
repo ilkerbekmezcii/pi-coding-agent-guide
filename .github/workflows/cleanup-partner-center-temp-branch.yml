@@ -1,14 +1,15 @@
 name: Cleanup temporary Partner Center branch
 on:
-  push:
-    branches: [main]
+  issues:
+    types: [opened]
 permissions:
   contents: write
 jobs:
   cleanup:
+    if: github.event.issue.title == '[CLEANUP-PC-BRANCH]'
     runs-on: ubuntu-latest
     steps:
       - name: Delete temporary branch
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/partner-center-pr-probe || true
+        run: gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/partner-center-pr-probe
