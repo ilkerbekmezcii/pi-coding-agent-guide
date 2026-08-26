@@ -1,0 +1,47 @@
+name: One-time Actions Run Cleanup
+on:
+  push:
+    paths:
+      - '.github/workflows/_cleanup-actions-runs.yml'
+permissions:
+  actions: write
+  contents: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cancel and delete all workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CURRENT_RUN: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -u
+          api="https://api.github.com/repos/${REPO}/actions/runs"
+          auth=(-H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28")
+          for pass in $(seq 1 20); do
+            json="$(curl -fsSL "${auth[@]}" "${api}?per_page=100")"
+            mapfile -t rows < <(jq -r --arg cur "$CURRENT_RUN" '.workflow_runs[] | select((.id|tostring) != $cur) | [.id,.status] | @tsv' <<<"$json")
+            [ "${#rows[@]}" -eq 0 ] && break
+            for row in "${rows[@]}"; do
+              id="${row%%$'\t'*}"; status="${row#*$'\t'}"
+              case "$status" in
+                queued|in_progress|waiting|pending|requested)
+                  curl -sS -o /dev/null -X POST "${auth[@]}" "${api}/${id}/force-cancel" || true
+                  ;;
+              esac
+            done
+            sleep 4
+            json="$(curl -fsSL "${auth[@]}" "${api}?per_page=100")"
+            mapfile -t ids < <(jq -r --arg cur "$CURRENT_RUN" '.workflow_runs[] | select((.id|tostring) != $cur) | .id' <<<"$json")
+            for id in "${ids[@]}"; do
+              curl -sS -o /dev/null -X DELETE "${auth[@]}" "${api}/${id}" || true
+            done
+            sleep 3
+          done
+          left="$(curl -fsSL "${auth[@]}" "${api}?per_page=100" | jq --arg cur "$CURRENT_RUN" '[.workflow_runs[] | select((.id|tostring) != $cur)] | length')"
+          echo "remaining_excluding_current=$left"
+          self_code="$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE "${auth[@]}" "${api}/${CURRENT_RUN}" || true)"
+          echo "self_delete_http=$self_code"
