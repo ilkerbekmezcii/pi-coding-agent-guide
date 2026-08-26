@@ -22,7 +22,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Probe Partner Center
         run: |
-          cat > /tmp/probe.mjs <<'EOF'
+          cat > probe.mjs <<'EOF'
           import { chromium } from 'playwright';
           import fs from 'fs';
           const browser = await chromium.launch({headless:true});
@@ -41,7 +41,7 @@ jobs:
           await browser.close();
           if(error) process.exitCode=2;
           EOF
-          node /tmp/probe.mjs
+          node probe.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
