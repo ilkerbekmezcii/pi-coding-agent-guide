@@ -1,14 +1,13 @@
 name: Final Forced Actions Cleanup
 on:
-  issues:
-    types: [opened]
+  push:
+    paths:
+      - '.github/workflows/_cleanup-actions-final.yml'
 permissions:
   actions: write
   contents: write
-  issues: write
 jobs:
   cleanup:
-    if: github.event.issue.title == '[OPS] ACTIONS FINAL CLEANUP'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -17,7 +16,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           CURRENT_RUN: ${{ github.run_id }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
           WORKFLOW_PATH: .github/workflows/_cleanup-actions-final.yml
         shell: bash
         run: |
@@ -38,7 +36,6 @@ jobs:
             for id in "${ids[@]}"; do curl -sS -o /dev/null -X DELETE "${auth[@]}" "${api}/actions/runs/${id}" || true; done
             sleep 1
           done
-          curl -sS -o /dev/null -X PATCH "${auth[@]}" "${api}/issues/${ISSUE_NUMBER}" -d '{"state":"closed"}' || true
           file_sha="$(curl -sS "${auth[@]}" "${api}/contents/${WORKFLOW_PATH}" | jq -r '.sha // empty' 2>/dev/null || true)"
           if [ -n "$file_sha" ]; then body="$(jq -nc --arg sha "$file_sha" '{message:"ops: remove temporary Actions cleanup",sha:$sha}')"; curl -sS -o /dev/null -X DELETE "${auth[@]}" "${api}/contents/${WORKFLOW_PATH}" -d "$body" || true; fi
           cat >/tmp/self-delete.sh <<'EOF'
