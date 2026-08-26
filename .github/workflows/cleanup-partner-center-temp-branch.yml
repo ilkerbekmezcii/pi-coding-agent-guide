@@ -1,0 +1,14 @@
+name: Cleanup temporary Partner Center branch
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete temporary branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/partner-center-pr-probe || true
