@@ -1,0 +1,48 @@
+name: Temporary Partner Center Browser Probe
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium automation
+        run: |
+          npm install --no-save playwright@latest
+          npx playwright install --with-deps chromium
+      - name: Probe Partner Center
+        run: |
+          cat > /tmp/probe.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'fs';
+          const browser = await chromium.launch({headless:true});
+          const ctx = await browser.newContext({locale:'en-US', timezoneId:'Europe/Istanbul', viewport:{width:1440,height:1000}});
+          const page = await ctx.newPage();
+          let responseStatus=null, error=null;
+          try {
+            const r=await page.goto('https://partner.microsoft.com/dashboard',{waitUntil:'domcontentloaded',timeout:90000});
+            responseStatus=r?.status() ?? null;
+            await page.waitForTimeout(7000);
+          } catch(e) { error=String(e); }
+          const result={responseStatus,url:page.url(),title:await page.title().catch(()=>''),error,text:(await page.locator('body').innerText().catch(()=>'' )).slice(0,2500)};
+          console.log('PARTNER_PROBE_RESULT='+JSON.stringify(result));
+          fs.writeFileSync('partner-center-probe.json',JSON.stringify(result,null,2));
+          await page.screenshot({path:'partner-center-probe.png',fullPage:true}).catch(()=>{});
+          await browser.close();
+          if(error) process.exitCode=2;
+          EOF
+          node /tmp/probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partner-center-probe
+          path: |
+            partner-center-probe.json
+            partner-center-probe.png
+          retention-days: 1
