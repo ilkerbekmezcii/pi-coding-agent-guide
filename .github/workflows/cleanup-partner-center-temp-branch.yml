@@ -1,7 +1,7 @@
 name: Cleanup temporary Partner Center branch
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 permissions:
   contents: write
 jobs:
