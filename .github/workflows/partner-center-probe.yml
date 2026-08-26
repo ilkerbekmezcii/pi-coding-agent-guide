@@ -2,6 +2,8 @@ name: Temporary Partner Center Browser Probe
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   probe:
