@@ -1,0 +1,47 @@
+name: Manual Internet Worker
+
+on:
+  push:
+    paths:
+      - "internet-request.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch URL
+        id: fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="$(sed -n '1p' internet-request.txt | tr -d '\r')"
+          OUT="$(sed -n '2p' internet-request.txt | tr -d '\r')"
+          case "$URL" in
+            https://*) ;;
+            *) echo "Only https:// URLs are allowed" >&2; exit 2 ;;
+          esac
+          [ -n "$OUT" ] || OUT="download.bin"
+          OUT="$(basename "$OUT")"
+          echo "RUNNER_OS=$RUNNER_OS"
+          echo "NODE=$(node --version)"
+          echo "CURL=$(curl --version | head -n1)"
+          curl --fail --location --retry 2 --retry-all-errors --connect-timeout 20 --max-time 120 --user-agent "ubuntu-runner-gateway-test/1.0" "$URL" --output "$OUT"
+          test -s "$OUT"
+          echo "BYTES=$(wc -c < "$OUT")"
+          sha256sum "$OUT"
+          echo "file=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-gateway-test-result
+          path: ${{ steps.fetch.outputs.file }}
+          if-no-files-found: error
+          retention-days: 1
