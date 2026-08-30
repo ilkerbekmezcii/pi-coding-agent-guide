@@ -1,0 +1,4 @@
+https://avpjpoywjyhnvbaqxyip.supabase.co/functions/v1/blackchess-public-probe?pkg=android-cli&meta=1
+https://avpjpoywjyhnvbaqxyip.supabase.co/functions/v1/blackchess-public-probe?pkg=android-cli
+https://avpjpoywjyhnvbaqxyip.supabase.co/functions/v1/blackchess-public-probe?pkg=gradle-8.11.1&meta=1
+https://avpjpoywjyhnvbaqxyip.supabase.co/functions/v1/blackchess-public-probe?pkg=gradle-8.11.1
