@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - '.github/workflows/debian-android-sdk-bundle.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/debian-android-sdk-bundle.yml'
 
 permissions:
   contents: read
