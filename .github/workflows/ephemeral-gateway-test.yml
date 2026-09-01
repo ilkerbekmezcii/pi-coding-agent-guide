@@ -30,3 +30,4 @@ jobs:
           cat /tmp/headers.txt 2>/dev/null || true
           echo '=== BODY ==='
           cat /tmp/body.txt 2>/dev/null || true
+          echo '=== END ==='
