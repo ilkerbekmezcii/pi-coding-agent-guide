@@ -1,3 +1,4 @@
+# Temporary PR trigger for Android SDK packaging
 name: Build Android SDK 36 from Debian repositories
 
 on:
