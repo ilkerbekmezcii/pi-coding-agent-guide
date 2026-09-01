@@ -1,6 +1,7 @@
 name: Build Android SDK 36 from Debian repositories
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - '.github/workflows/debian-android-sdk-bundle.yml'
